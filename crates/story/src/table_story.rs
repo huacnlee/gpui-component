@@ -2,9 +2,9 @@ use std::time::{self, Duration};
 
 use fake::{Fake, Faker};
 use gpui::{
-    div, impl_actions, px, AnyElement, Edges, InteractiveElement, IntoElement, ParentElement,
-    Pixels, Render, SharedString, Styled, Timer, View, ViewContext, VisualContext as _,
-    WindowContext,
+    div, impl_actions, px, AnyElement, AppContext, Edges, InteractiveElement, IntoElement,
+    ParentElement, Pixels, Render, SharedString, Styled, Timer, View, ViewContext,
+    VisualContext as _, WindowContext,
 };
 use serde::Deserialize;
 use ui::{
@@ -283,7 +283,7 @@ impl TableDelegate for StockTableDelegate {
         self.columns.len()
     }
 
-    fn rows_count(&self) -> usize {
+    fn rows_count(&self, _: &'_ AppContext) -> usize {
         self.stocks.len()
     }
 
@@ -683,6 +683,7 @@ impl TableStory {
 impl Render for TableStory {
     fn render(&mut self, cx: &mut ViewContext<Self>) -> impl gpui::IntoElement {
         let delegate = self.table.read(cx).delegate();
+        let delegate_size = delegate.rows_count(cx);
         let size = self.size;
 
         v_flex()
@@ -787,7 +788,7 @@ impl Render for TableStory {
                         .when(delegate.loading, |this| {
                             this.child(h_flex().gap_1().child(Indicator::new()).child("Loading..."))
                         })
-                        .child(format!("Total Rows: {}", delegate.rows_count()))
+                        .child(format!("Total Rows: {}", delegate_size))
                         .when(delegate.is_eof, |this| this.child("All data loaded.")),
                 ),
             )

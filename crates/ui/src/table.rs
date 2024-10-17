@@ -137,7 +137,7 @@ pub trait TableDelegate: Sized + 'static {
     /// Return the number of columns in the table.
     fn cols_count(&self) -> usize;
     /// Return the number of rows in the table.
-    fn rows_count(&self) -> usize;
+    fn rows_count(&self, cx: &'_ AppContext) -> usize;
 
     /// Returns the name of the column at the given index.
     fn col_name(&self, col_ix: usize) -> SharedString;
@@ -377,7 +377,7 @@ where
 
     fn action_select_prev(&mut self, _: &SelectPrev, cx: &mut ViewContext<Self>) {
         let mut selected_row = self.selected_row.unwrap_or(0);
-        let rows_count = self.delegate.rows_count();
+        let rows_count = self.delegate.rows_count(cx);
         if selected_row > 0 {
             selected_row = selected_row - 1;
         } else {
@@ -391,7 +391,7 @@ where
 
     fn action_select_next(&mut self, _: &SelectNext, cx: &mut ViewContext<Self>) {
         let mut selected_row = self.selected_row.unwrap_or(0);
-        if selected_row < self.delegate.rows_count() - 1 {
+        if selected_row < self.delegate.rows_count(cx) - 1 {
             selected_row += 1;
         } else {
             if self.delegate.can_loop_select() {
@@ -523,7 +523,7 @@ where
             return;
         }
 
-        let row_count = self.delegate.rows_count();
+        let row_count = self.delegate.rows_count(cx);
         let load_more_count = self.delegate.load_more_threshold();
 
         // Securely handle subtract logic to prevent attempt to subtract with overflow
@@ -1055,7 +1055,7 @@ where
         let vertical_scroll_handle = self.vertical_scroll_handle.clone();
         let horizontal_scroll_handle = self.horizontal_scroll_handle.clone();
         let cols_count: usize = self.delegate.cols_count();
-        let rows_count = self.delegate.rows_count();
+        let rows_count = self.delegate.rows_count(cx);
 
         let row_height = self
             .vertical_scroll_handle
